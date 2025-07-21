@@ -10,13 +10,42 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #030712; /* A very dark base background */
         }
         .section {
             scroll-margin-top: 64px;
         }
+        #background-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Place canvas behind all content */
+        }
+        .typed-cursor {
+            color: #818cf8; /* Indigo color for the cursor */
+        }
+        .invisible {
+            visibility: hidden;
+        }
+        .fade-in {
+            animation: fadeInAnimation 0.7s ease-in forwards;
+        }
+        @keyframes fadeInAnimation {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200">
+    <canvas id="background-canvas"></canvas>
 
     <!-- Header & Navigation -->
     <header class="bg-gray-900/80 backdrop-blur-md fixed top-0 left-0 right-0 z-50">
@@ -47,16 +76,18 @@
         </div>
     </header>
 
-    <main class="container mx-auto px-6">
+    <main class="container mx-auto px-6 relative z-10">
 
         <!-- Hero Section -->
         <section id="home" class="min-h-screen flex items-center justify-center">
             <div class="text-center w-full">
-                <h1 class="text-5xl md:text-7xl font-extrabold text-white leading-tight mb-4">
-                    Hi, I'm <span class="text-indigo-400">Suryakant Pandey</span>
+                <h1 id="typing-heading-container" class="text-5xl md:text-7xl font-extrabold text-white leading-tight mb-4">
+                    <span id="typing-heading"></span>
                 </h1>
-                <p class="text-xl md:text-2xl text-gray-400 mb-8">A Backend & AI/ML Developer specializing in Java, Spring Boot, and Microservices.</p>
-                <div class="flex justify-center space-x-4">
+                <p id="subtitle-line" class="text-xl md:text-2xl text-gray-400 mb-8 invisible">
+                    <span id="typing-subtitle"></span>
+                </p>
+                <div id="hero-buttons" class="flex justify-center space-x-4 invisible">
                     <a href="#experience" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300">View My Work</a>
                     <a href="#contact" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300">Get In Touch</a>
                 </div>
@@ -66,7 +97,7 @@
         <!-- About Me Section -->
         <section id="about" class="section py-20">
             <h2 class="text-4xl font-bold text-center mb-12 text-white">About Me</h2>
-            <div class="max-w-3xl mx-auto text-center">
+            <div id="about-me-content" class="max-w-3xl mx-auto text-center">
                 <p class="text-lg text-gray-300 mb-4">
                     I am a Backend Developer with 2+ years of experience building scalable microservices and data-driven systems at Myntra and Hyperface (fintech startup). Currently expanding into AI/ML engineering, leveraging my strong foundation in algorithms, distributed systems, and data processing. At Myntra, I optimize large-scale workflow management platforms using Apache Airflow, implementing async processing and parallel API calls for high-throughput data operations. Previously at Hyperface, I built event-driven microservices handling 1000+ files/hour, developed no-code customer onboarding systems, and created transaction simulators with real-time calculations—experiences that sparked my interest in intelligent automation and data-driven solutions.
                 </p>
@@ -79,7 +110,7 @@
         <!-- Professional Experience Section -->
         <section id="experience" class="section py-20">
             <h2 class="text-4xl font-bold text-center mb-12 text-white">Professional Experience</h2>
-            <div class="max-w-3xl mx-auto space-y-8">
+            <div id="experience-content" class="max-w-3xl mx-auto space-y-8">
                 <!-- Experience Item: Myntra -->
                 <div class="bg-gray-800/50 p-6 rounded-lg shadow-lg">
                      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2">
@@ -152,7 +183,7 @@
         <!-- Skills Section -->
         <section id="skills" class="section py-20 bg-gray-800/50 rounded-2xl">
             <h2 class="text-4xl font-bold text-center mb-12 text-white">My Skills</h2>
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
+            <div id="skills-content" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
                 <div class="flex flex-col items-center p-4 bg-gray-700/50 rounded-lg hover:bg-gray-700 transition duration-300"><i data-lucide="brain-circuit" class="w-12 h-12 text-indigo-400 mb-3"></i><span class="font-medium">Vector DBs</span></div>
                 <div class="flex flex-col items-center p-4 bg-gray-700/50 rounded-lg hover:bg-gray-700 transition duration-300"><i data-lucide="server" class="w-12 h-12 text-indigo-400 mb-3"></i><span class="font-medium">Spring Boot</span></div>
                 <div class="flex flex-col items-center p-4 bg-gray-700/50 rounded-lg hover:bg-gray-700 transition duration-300"><i data-lucide="code" class="w-12 h-12 text-indigo-400 mb-3"></i><span class="font-medium">Java</span></div>
@@ -271,55 +302,47 @@
         </div>
     </footer>
 
+    <script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js"></script>
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
 
+        // --- Mobile Menu Logic ---
         const mobileMenuButton = document.getElementById('mobile-menu-button');
         const mobileMenu = document.getElementById('mobile-menu');
         const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
-
-        // Toggle mobile menu
-        mobileMenuButton.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-        });
-
-        // Function to close mobile menu
         const closeMobileMenu = () => {
             if (!mobileMenu.classList.contains('hidden')) {
                 mobileMenu.classList.add('hidden');
             }
         };
-
-        // Close mobile menu on link click
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
         mobileNavLinks.forEach(link => {
             link.addEventListener('click', () => {
                 closeMobileMenu();
             });
         });
         
-        // Smooth scroll for all navigation links
+        // --- Smooth Scroll Logic ---
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
-                
                 const targetId = this.getAttribute('href');
                 const targetElement = document.querySelector(targetId);
-
                 if (targetElement) {
                     targetElement.scrollIntoView({
                         behavior: 'smooth'
                     });
                 }
-                // Also close mobile menu if it's open
                 closeMobileMenu();
             });
         });
 
-        // Contact Formspree submission with JS for better UX
+        // --- Contact Form Logic ---
         const form = document.getElementById('contact-form');
         const formStatus = document.getElementById('form-status');
-
         async function handleSubmit(event) {
             event.preventDefault();
             const data = new FormData(event.target);
@@ -327,9 +350,7 @@
                 const response = await fetch(event.target.action, {
                     method: form.method,
                     body: data,
-                    headers: {
-                        'Accept': 'application/json'
-                    }
+                    headers: { 'Accept': 'application/json' }
                 });
                 if (response.ok) {
                     formStatus.textContent = "Thanks for your submission!";
@@ -350,6 +371,82 @@
             }
         }
         form.addEventListener("submit", handleSubmit);
+
+        // --- Typing Animation Logic ---
+        const subtitleLine = document.getElementById('subtitle-line');
+        const heroButtons = document.getElementById('hero-buttons');
+
+        const typedHeading = new Typed('#typing-heading', {
+            strings: ["Hi, I'm <span class='text-indigo-400'>Suryakant Pandey</span>"],
+            typeSpeed: 50,
+            showCursor: true,
+            cursorChar: '_',
+            loop: false,
+            onComplete: (self) => {
+                self.cursor.remove();
+                subtitleLine.classList.remove('invisible');
+                const typedSubtitle = new Typed('#typing-subtitle', {
+                    strings: ["Backend Developer with a passion for AI/ML."],
+                    typeSpeed: 40,
+                    startDelay: 200,
+                    showCursor: true,
+                    cursorChar: '_',
+                    loop: false,
+                    onComplete: (self) => {
+                       self.cursor.remove();
+                       heroButtons.classList.remove('invisible');
+                       heroButtons.classList.add('fade-in');
+                    }
+                });
+            }
+        });
+
+        // --- Animated Background Logic ---
+        const canvas = document.getElementById('background-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const gridSize = 30;
+        let frame = 0;
+
+        function draw() {
+            frame++;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = 'rgba(75, 85, 99, 0.2)'; // Faint gray color
+
+            for (let x = 0; x <= canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+
+            for (let y = 0; y <= canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            const glowX = (canvas.width / 2) + Math.sin(frame * 0.01) * (canvas.width / 4);
+            const glowY = (canvas.height / 2) + Math.cos(frame * 0.015) * (canvas.height / 4);
+            const gradient = ctx.createRadialGradient(glowX, glowY, 0, glowX, glowY, 300);
+            gradient.addColorStop(0, 'rgba(129, 140, 248, 0.05)'); // Faint indigo glow
+            gradient.addColorStop(1, 'rgba(129, 140, 248, 0)');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            requestAnimationFrame(draw);
+        }
+
+        draw();
 
     </script>
 </body>
